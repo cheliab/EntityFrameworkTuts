@@ -79,11 +79,11 @@ namespace EntityFrameworkTuts.Controllers
         public async Task<IActionResult> ConfimDelete(int? id)
         {
             if (id == null)
-                NotFound();
+                return NotFound();
 
             User foundUser = await _db.Users.FirstOrDefaultAsync(user => user.Id == id);
             if (foundUser == null)
-                NotFound();
+                return NotFound();
 
             return View(foundUser);
         }
@@ -91,13 +91,10 @@ namespace EntityFrameworkTuts.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-                NotFound();
-
-            User foundUser = await _db.Users.FirstOrDefaultAsync(user => user.Id == id);
-            if (foundUser == null)
-                NotFound();
-
-            _db.Users.Remove(foundUser);
+                return NotFound();
+            
+            User foundUser = new User { Id = id.Value };
+            _db.Entry(foundUser).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
             return RedirectToAction("Index");
