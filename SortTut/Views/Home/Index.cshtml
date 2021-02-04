@@ -1,8 +1,38 @@
-﻿@{
+﻿@model IEnumerable<User> 
+@{
     ViewData["Title"] = "Home Page";
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Список пользователей</h1>
+<table>
+    <tr>
+        <th>
+            <a asp-action="Index" asp-route-sortOrder="@ViewBag.NameSort">
+                Имя
+            </a>
+        </th>
+        <th>
+            <a asp-action="Index" asp-route-sortOrder="@ViewBag.AgeSort">
+                Возраст
+            </a>
+        </th>
+        <th>
+            <a asp-action="Index" asp-route-sortOrder="@ViewBag.CompSort">
+                Возраст
+            </a>
+        </th>
+    </tr>
+    @foreach (User user in Model)
+    {
+        <tr>
+            <td>
+                @user.Name
+            </td>
+            <td>
+                @user.Age
+            </td>
+            <td>
+                @user.Company.Name
+            </td>
+        </tr>
+    }
+</table>

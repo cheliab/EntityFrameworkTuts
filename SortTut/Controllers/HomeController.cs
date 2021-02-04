@@ -4,34 +4,44 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SortTut.Data;
 using SortTut.Models;
 
 namespace SortTut.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private UsersContext db;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(UsersContext context)
         {
-            _logger = logger;
+            db = context;
+
+            if (!db.Companies.Any())
+                InitData.Start(context);
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(UserSortState sortOrder = UserSortState.NameAsc)
         {
-            return View();
-        }
+            IQueryable<User> users = db.Users.Include(user => user.Company);
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+            ViewBag.NameSort = sortOrder == UserSortState.NameAsc ? UserSortState.NameDecs : UserSortState.NameAsc;
+            ViewBag.AgeSort = sortOrder == UserSortState.AgeAsc ? UserSortState.AgeDesc : UserSortState.AgeAsc;
+            ViewBag.CompSort = sortOrder == UserSortState.CompanyAsc ? UserSortState.CompanyDesc : UserSortState.CompanyAsc;
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
+            users = sortOrder switch
+            {
+                UserSortState.NameDecs => users.OrderByDescending(user => user.Name),
+                UserSortState.AgeAsc => users.OrderBy(user => user.Age),
+                UserSortState.AgeDesc => users.OrderByDescending(user => user.Age),
+                UserSortState.CompanyAsc => users.OrderBy(user => user.Company.Name),
+                UserSortState.CompanyDesc => users.OrderByDescending(user => user.Company.Name),
+                _ => users.OrderBy(user => user.Name),
+            };
+            
+            return View(await users.AsNoTracking().ToListAsync());
         }
     }
 }
